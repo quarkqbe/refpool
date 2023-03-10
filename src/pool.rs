@@ -116,8 +116,14 @@ impl<A> Pool<A> {
     /// assert_eq!(1024, pool.get_pool_size());
     /// ```
     pub fn fill(&self) {
+        self.fill_n(self.get_max_size())
+    }
+
+    /// Fill at most n new objects
+    pub fn fill_n(&self, n: usize) {
         if let Some(inner) = self.deref() {
-            while inner.get_max_size() > inner.get_pool_size() {
+            let n = std::cmp::min(n, inner.get_max_size() - inner.get_pool_size());
+            for _ in 0..n {
                 let chunk = unsafe {
                     std::alloc::alloc(std::alloc::Layout::from_size_align_unchecked(
                         std::mem::size_of::<RefBox<A>>(),
